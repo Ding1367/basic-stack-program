@@ -3,6 +3,7 @@ I made this randomly just to see how good I am and then when I realized I could 
 
 # The docs
 You don't need much documentation besides being able to type **--nom** or **--nomenu** to silence the options, at least for the actual executable. You need to know some stuff to actually make your cool little .lua file for the executable.
+Also, the option 7 is for backwards compatibility with users familiar with v1.0 and scripts written for v1.0 (cat [script name].txt > [stack executable]). In v1.2, you can just type the operation name and it executes it.
 
 # Building... maybe?
 I don't know about Windows since I don't use it to develop, but if you have your lua headers and library and stuff and do some linking it could work. I'm the developer which is the embodiment of "it works on my machine."
@@ -32,3 +33,42 @@ You can get the stack size by calling :size() and to manage the top of the stack
 To override a value on the stack, and act like you're managing an array rather than a stack, you can :top(index) and then push the new value, and to just access it you can do the same but peek instead.
 
 That is the whole Lua API because you don't really need anything else. Also I did not sandbox Lua, so you can do whatever regular Lua can do, which is why if you get any .lua extensions/files you can load, MAKE SURE THE CODE IS SECURE!!!! Also that means require is available so also check the native code if you can yourself.
+
+# Lua Examples
+Now if you don't get how to use the Lua API, there's some examples in the *examples* folder. Here's some basic examples. If you want to add math to the stack, you can start off your script like this.
+
+```lua
+if not sign("StackArith") then
+    return -- already loaded or taken
+end
+```
+
+Ok, now that our basic arithmetic extension has signing which is actually really useful to prevent loading twice, in case you have some extra code that should only be ran once. Now lets add addition and subtraction, since we can't handle floating points in our stack program because it's a stack that holds int64\_t values.
+
+```lua
+regop("add", function(stk)
+    if stk:top() < 2 then
+        print("not enough arguments")
+        return false
+    end
+    local a, b = select(2, stk:pop()), select(2, stk:pop())
+    return stk:push(a + b)
+end)
+```
+
+Here we check the stack, make sure we have space, and because we did that we can ignore the first return values of :pop() and just select the second result, and then we return whether :push(val) failed or not.
+
+Now let's implement subtraction. Assuming the user will push the value to subtract from first, then the amount to subtract, we will swap a and b.
+
+```lua
+regop("sub", function(stk)
+    if stk:top() < 2 then
+        print("not enough arguments")
+        return false
+    end
+    local b, a = select(2, stk:pop()), select(2, stk:pop())
+    return stk:push(a - b)
+end)
+```
+
+As simple as that, we just switch b to be first and a to be last. Now if you load this file and push some values, you can simply type in *add* or *sub* and it will do the said operation.

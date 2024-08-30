@@ -82,11 +82,8 @@ static void print_options(void){
     puts("9.  Get top");
     puts("10. List operations available");
     puts("11. List signed program names");
+    puts("12. Print max size");
 }
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
 
 int tref = LUA_REFNIL;
 int sref = LUA_REFNIL;
@@ -262,6 +259,7 @@ int stkp_call_operation(lua_State *L, const char *name, stack_t *stk){
 #define GET_TOP 9
 #define LIST_OPTS 10
 #define LIST_NAMES 11
+#define GET_SIZE 12
 
 lua_State *L;
 stack_t *stack; // main stack
@@ -276,6 +274,23 @@ static int _graceful_exit(lua_State *oL){
     int value = luaL_optinteger(oL, 1, 0);
     stkp_graceful_exit(value);
     return 0;
+}
+
+static void _opts_do_oper(const char *op){
+    int r;
+    if ((r = stkp_call_operation(L, op, stack)) != CODE_SUCCESS){
+        if (r == CODE_FAILED){
+            puts("execution failed"); // user defined error, not lua itself
+            return;
+        }
+        printf("failed: %d\n", r);
+        if (r == NOT_FOUND){
+            puts("operation was not found");
+            return;
+        }
+        printf("lua error message: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
 }
 
 int main(int argc, char **argv) {
@@ -321,8 +336,9 @@ int main(int argc, char **argv) {
         print_options();
         printf("> ");
         if (!scanf("%u", &opt)){
-            char _[64];
-            scanf("%63s", _);
+            char op[64] = {0};
+            scanf("%63s", op);
+            _opts_do_oper(op);
             continue;
         }
         switch(opt){
@@ -373,16 +389,7 @@ int main(int argc, char **argv) {
             char opbuf[64] = {0};
             printf("Enter the operation name to call to: ");
             scanf("%63s", opbuf);
-            int r;
-            if ((r = stkp_call_operation(L, opbuf, stack)) != CODE_SUCCESS){
-                if (r == CODE_FAILED){
-                    puts("execution failed"); // user defined error, not lua itself
-                    break;
-                }
-                printf("failed: %d\n", r);
-                printf("lua error message: %s\n", lua_tostring(L, -1));
-                lua_pop(L, 1);
-            }
+            _opts_do_oper(opbuf);
             break;
         }
         case PEEK:{
@@ -420,6 +427,9 @@ int main(int argc, char **argv) {
             puts("");
             break;
         }
+        case GET_SIZE:
+            printf("Size is %zu\n", stack->sz);
+            break;
         case PRINT_OPTIONS:{
             skip = 0;
             print_options();
