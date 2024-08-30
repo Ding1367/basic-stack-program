@@ -1,11 +1,14 @@
 # basic-stack-program
-I made this randomly just to see how good I am and then when I realized I coul be good I decided to add **Lua support** so this might actually be useful, since you can do stuff like, build interpreters on top of it, since a C stack that holds 8 bytes for each element is still somehow better than a Lua table.
+I made this randomly just to see how good I am and then when I realized I could be good I decided to add **Lua support** so this might actually be useful, since you can do stuff like, build interpreters on top of it, since a C stack that holds 8 bytes for each element is still somehow better than a Lua table.
 
 # The docs
 You don't need much documentation besides being able to type **--nom** or **--nomenu** to silence the options, at least for the actual executable. You need to know some stuff to actually make your cool little .lua file for the executable.
 
 # Building... maybe?
 I don't know about Windows since I don't use it to develop, but if you have your lua headers and library and stuff and do some linking it could work. I'm the developer which is the embodiment of "it works on my machine."
+
+You want to build it as an executable by linking to your Lua includes and headers. That's it, no -ObjC no nothing, that's all I want from you when building :3
+If you want to build it as a library, all you have to do is remove main and compile as static or dynamic library. You can also remove whatever else you don't want or also just not use it.
 
 ## Operations
 For operations, you have some options. The main one is **regop** which takes in a name which is at most 63 characters for C reasons and a function which takes one argument (the stack userdata) and returns a boolean representing success or error, one annoying thing about it is if you return false, it will print a message.
